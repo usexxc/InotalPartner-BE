@@ -19,6 +19,7 @@ func Setup(
 	tagSvc *service.TagService,
 	articleSvc *service.ArticleService,
 	bannerSvc *service.HomepageBannerService,
+	contactSvc *service.ContactService,
 ) {
 	// CORS
 	r.Use(cors.New(cors.Config{
@@ -45,6 +46,7 @@ func Setup(
 	tagHandler := handler.NewTagHandler(tagSvc)
 	articleHandler := handler.NewArticleHandler(articleSvc)
 	bannerHandler := handler.NewHomepageBannerHandler(bannerSvc)
+	contactHandler := handler.NewContactHandler(contactSvc)
 
 	// API v1
 	api := r.Group("/api")
@@ -192,6 +194,23 @@ func Setup(
 			homepage.POST("", bannerHandler.CreateBanner)        // POST   /api/homepage/banners (only Admin)
 			homepage.PUT("/:id", bannerHandler.UpdateBanner)     // PUT    /api/homepage/banners/:id (only Admin)
 			homepage.DELETE("/:id", bannerHandler.DeleteBanner)  // DELETE /api/homepage/banners/:id (only Admin)
+		}
+
+		// ── Contacts (Pesan dari form publik "Tinggalkan Pesan") ─────────────
+		contacts := api.Group("/contacts")
+		{
+			// Publik — dipakai form di halaman Hubungi Kami (tanpa login)
+			contacts.POST("", contactHandler.SubmitContact) // POST /api/contacts
+
+			// Dashboard — kotak masuk pesan (operator ke atas)
+			inbox := contacts.Group("")
+			inbox.Use(middleware.AuthMiddleware(authSvc))
+			inbox.Use(middleware.RequireRole("operator", "admin", "super_admin"))
+			{
+				inbox.GET("", contactHandler.GetContacts)                // GET    /api/contacts (pesan terbaru di paling atas)
+				inbox.PATCH("/:id/read", contactHandler.MarkContactRead) // PATCH  /api/contacts/:id/read
+				inbox.DELETE("/:id", contactHandler.DeleteContact)       // DELETE /api/contacts/:id
+			}
 		}
 
 		// ── Public Content (No Auth Required) ──────────────────────────────
