@@ -19,6 +19,7 @@ func Setup(
 	tagSvc *service.TagService,
 	articleSvc *service.ArticleService,
 	bannerSvc *service.HomepageBannerService,
+	aboutCardSvc *service.AboutCardService,
 ) {
 	// CORS
 	r.Use(cors.New(cors.Config{
@@ -45,6 +46,7 @@ func Setup(
 	tagHandler := handler.NewTagHandler(tagSvc)
 	articleHandler := handler.NewArticleHandler(articleSvc)
 	bannerHandler := handler.NewHomepageBannerHandler(bannerSvc)
+	aboutCardHandler := handler.NewAboutCardHandler(aboutCardSvc)
 
 	// API v1
 	api := r.Group("/api")
@@ -182,6 +184,17 @@ func Setup(
 			homepage.DELETE("/:id", bannerHandler.DeleteBanner)  // DELETE /api/homepage/banners/:id (only Admin)
 		}
 
+		// ── Kartu Tentang (kartu "Pilih yang Terbaik" di halaman Tentang) ────
+		aboutCards := api.Group("/about/cards")
+		aboutCards.Use(middleware.AuthMiddleware(authSvc))
+		aboutCards.Use(middleware.AdminOrAbove())
+		{
+			aboutCards.GET("", aboutCardHandler.GetCards)          // GET    /api/about/cards
+			aboutCards.POST("", aboutCardHandler.CreateCard)       // POST   /api/about/cards
+			aboutCards.PUT("/:id", aboutCardHandler.UpdateCard)    // PUT    /api/about/cards/:id
+			aboutCards.DELETE("/:id", aboutCardHandler.DeleteCard) // DELETE /api/about/cards/:id
+		}
+
 		// ── Public Content (No Auth Required) ──────────────────────────────
 		publicArticleHandler := handler.NewPublicArticleHandler(articleSvc)
 		public := api.Group("/public")
@@ -205,6 +218,9 @@ func Setup(
 			// Homepage Banners & Heroes (alias)
 			public.GET("/homepage/banners", bannerHandler.GetPublicBanners) // GET /api/public/homepage/banners
 			public.GET("/homepage/heroes", bannerHandler.GetPublicBanners)  // GET /api/public/homepage/heroes (alias)
+
+			// Kartu Tentang
+			public.GET("/about/cards", aboutCardHandler.GetPublicCards) // GET /api/public/about/cards
 
 			// Popular Content
 			public.GET("/popular/news", publicArticleHandler.GetPopularNews)         // GET /api/public/popular/news
