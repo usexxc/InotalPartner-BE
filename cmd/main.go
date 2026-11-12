@@ -54,6 +54,33 @@ func main() {
 	aboutCardRepo := repository.NewAboutCardRepository(database.DB)
 	aboutCardSvc := service.NewAboutCardService(aboutCardRepo)
 
+	testimonialRepo := repository.NewTestimonialRepository(database.DB)
+	testimonialSvc := service.NewTestimonialService(testimonialRepo)
+
+	aboutSettingRepo := repository.NewAboutPageSettingRepository(database.DB)
+	aboutSettingSvc := service.NewAboutPageSettingService(aboutSettingRepo)
+
+	teamMemberRepo := repository.NewTeamMemberRepository(database.DB)
+	teamMemberSvc := service.NewTeamMemberService(teamMemberRepo)
+
+	aboutVideoRepo := repository.NewAboutVideoRepository(database.DB)
+	aboutVideoSvc := service.NewAboutVideoService(aboutVideoRepo)
+
+	aboutFAQRepo := repository.NewAboutFAQRepository(database.DB)
+	aboutFAQSvc := service.NewAboutFAQService(aboutFAQRepo)
+
+	aboutVideoSettingRepo := repository.NewAboutVideoSettingRepository(database.DB)
+	aboutVideoSettingSvc := service.NewAboutVideoSettingService(aboutVideoSettingRepo)
+
+	aboutVideoHighlightRepo := repository.NewAboutVideoHighlightRepository(database.DB)
+	aboutVideoHighlightSvc := service.NewAboutVideoHighlightService(aboutVideoHighlightRepo)
+
+	aboutStatisticRepo := repository.NewAboutStatisticRepository(database.DB)
+	aboutStatisticSvc := service.NewAboutStatisticService(aboutStatisticRepo)
+
+	pageBannerRepo := repository.NewPageBannerRepository(database.DB)
+	pageBannerSvc := service.NewPageBannerService(pageBannerRepo)
+
 	// 4. Setup Gin
 	if config.App.AppEnv == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -61,7 +88,28 @@ func main() {
 	r := gin.Default()
 
 	// 5. Daftarkan semua route
-	routes.Setup(r, authSvc, userSvc, roleSvc, categorySvc, tagSvc, articleSvc, homepageBannerSvc, contactSvc, empoweringSvc, aboutCardSvc)
+	routes.Setup(
+		r,
+		authSvc,
+		userSvc,
+		roleSvc,
+		categorySvc,
+		tagSvc,
+		articleSvc,
+		homepageBannerSvc,
+		contactSvc,
+		empoweringSvc,
+		aboutCardSvc,
+		testimonialSvc,
+		aboutSettingSvc,
+		teamMemberSvc,
+		aboutVideoSvc,
+		aboutFAQSvc,
+		aboutVideoSettingSvc,
+		aboutVideoHighlightSvc,
+		aboutStatisticSvc,
+		pageBannerSvc,
+	)
 
 	// 6. Jalankan server
 	addr := ":" + config.App.AppPort
