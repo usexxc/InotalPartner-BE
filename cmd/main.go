@@ -48,6 +48,12 @@ func main() {
 	contactRepo := repository.NewContactRepository(database.DB)
 	contactSvc := service.NewContactService(contactRepo)
 
+	empoweringRepo := repository.NewAboutEmpoweringRepository(database.DB)
+	empoweringSvc := service.NewAboutEmpoweringService(empoweringRepo)
+
+	aboutCardRepo := repository.NewAboutCardRepository(database.DB)
+	aboutCardSvc := service.NewAboutCardService(aboutCardRepo)
+
 	// 4. Setup Gin
 	if config.App.AppEnv == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -55,7 +61,7 @@ func main() {
 	r := gin.Default()
 
 	// 5. Daftarkan semua route
-	routes.Setup(r, authSvc, userSvc, roleSvc, categorySvc, tagSvc, articleSvc, homepageBannerSvc, contactSvc)
+	routes.Setup(r, authSvc, userSvc, roleSvc, categorySvc, tagSvc, articleSvc, homepageBannerSvc, contactSvc, empoweringSvc, aboutCardSvc)
 
 	// 6. Jalankan server
 	addr := ":" + config.App.AppPort

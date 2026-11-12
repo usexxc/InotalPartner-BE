@@ -20,6 +20,8 @@ func Setup(
 	articleSvc *service.ArticleService,
 	bannerSvc *service.HomepageBannerService,
 	contactSvc *service.ContactService,
+	empoweringSvc *service.AboutEmpoweringService,
+	aboutCardSvc *service.AboutCardService,
 ) {
 	// CORS
 	r.Use(cors.New(cors.Config{
@@ -47,6 +49,8 @@ func Setup(
 	articleHandler := handler.NewArticleHandler(articleSvc)
 	bannerHandler := handler.NewHomepageBannerHandler(bannerSvc)
 	contactHandler := handler.NewContactHandler(contactSvc)
+	empoweringHandler := handler.NewAboutEmpoweringHandler(empoweringSvc)
+	aboutCardHandler := handler.NewAboutCardHandler(aboutCardSvc)
 
 	// API v1
 	api := r.Group("/api")
@@ -201,6 +205,28 @@ func Setup(
 			}
 		}
 
+		// ── Kartu Tentang (kartu "Pilih yang Terbaik" di halaman Tentang) ────
+		aboutCards := api.Group("/about/cards")
+		aboutCards.Use(middleware.AuthMiddleware(authSvc))
+		aboutCards.Use(middleware.AdminOrAbove())
+		{
+			aboutCards.GET("", aboutCardHandler.GetCards)          // GET    /api/about/cards
+			aboutCards.POST("", aboutCardHandler.CreateCard)       // POST   /api/about/cards
+			aboutCards.PUT("/:id", aboutCardHandler.UpdateCard)    // PUT    /api/about/cards/:id
+			aboutCards.DELETE("/:id", aboutCardHandler.DeleteCard) // DELETE /api/about/cards/:id
+		}
+
+		// ── About: Memberdayakan Bisnis (konfigurasi singleton) ─────────────
+		empowering := api.Group("/about/empowering")
+		empowering.Use(middleware.AuthMiddleware(authSvc))
+		empowering.Use(middleware.AdminOrAbove())
+		{
+			empowering.GET("", empoweringHandler.GetAboutEmpowering)       // GET    /api/about/empowering
+			empowering.POST("", empoweringHandler.CreateAboutEmpowering)   // POST   /api/about/empowering
+			empowering.PUT("", empoweringHandler.UpdateAboutEmpowering)    // PUT    /api/about/empowering
+			empowering.DELETE("", empoweringHandler.DeleteAboutEmpowering) // DELETE /api/about/empowering
+		}
+
 		// ── Public Content (No Auth Required) ──────────────────────────────
 		publicArticleHandler := handler.NewPublicArticleHandler(articleSvc)
 		public := api.Group("/public")
@@ -224,6 +250,12 @@ func Setup(
 			// Homepage Banners & Heroes (alias)
 			public.GET("/homepage/banners", bannerHandler.GetPublicBanners) // GET /api/public/homepage/banners
 			public.GET("/homepage/heroes", bannerHandler.GetPublicBanners)  // GET /api/public/homepage/heroes (alias)
+
+			// About: Memberdayakan Bisnis
+			public.GET("/about/empowering", empoweringHandler.GetPublicAboutEmpowering) // GET /api/public/about/empowering
+
+			// Kartu Tentang
+			public.GET("/about/cards", aboutCardHandler.GetPublicCards) // GET /api/public/about/cards
 
 			// Popular Content
 			public.GET("/popular/news", publicArticleHandler.GetPopularNews)         // GET /api/public/popular/news
